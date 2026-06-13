@@ -1,97 +1,157 @@
-# pip install pyaudio
-import pyttsx3 #pip install pyttsx3
-import speech_recognition as sr #pip install speechRecognition
 import datetime
-import wikipedia #pip install wikipedia
-import webbrowser
 import os
 import smtplib
+import webbrowser
+from pathlib import Path
 
-engine = pyttsx3.init('sapi5')
-voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[0].id)
+import pyttsx3
+import speech_recognition as sr
+import wikipedia
+
+
+def create_speech_engine():
+    engine = pyttsx3.init("sapi5")
+    voices = engine.getProperty("voices")
+    if voices:
+        engine.setProperty("voice", voices[0].id)
+    return engine
+
+
+engine = create_speech_engine()
+
 
 def speak(audio):
     engine.say(audio)
     engine.runAndWait()
 
-def wishMe():
-    hour = int(datetime.datetime.now().hour)
-    if hour >= 0 and hour < 12:
+
+def wish_me():
+    hour = datetime.datetime.now().hour
+
+    if hour < 12:
         speak("Good Morning!")
-    elif hour >= 12 and hour < 18:
+    elif hour < 18:
         speak("Good Afternoon!")
     else:
         speak("Good Evening!")
-    speak("I am Jarvis Sir. Please tell me how may I help you")
 
-def takeCommand():
-    r = sr.Recognizer()
+    speak("I am Jarvis. Please tell me how may I help you.")
+
+
+def take_command():
+    recognizer = sr.Recognizer()
+
     with sr.Microphone() as source:
         print("Listening...")
-        r.pause_threshold = 1
-        audio = r.listen(source)
+        recognizer.pause_threshold = 1
+        audio = recognizer.listen(source)
+
     try:
         print("Recognizing...")
-        query = r.recognize_google(audio, language='en-in')
+        query = recognizer.recognize_google(audio, language="en-in")
         print(f"User said: {query}\n")
-    except Exception as e:
-        print(f"Error: {e}")
-        print("Say that again please...")
-        return "None"
-    return query
+        return query.lower()
+    except sr.UnknownValueError:
+        print("Could not understand audio.")
+        speak("Say that again please.")
+    except sr.RequestError as error:
+        print(f"Speech recognition service error: {error}")
+        speak("Speech recognition service is not available right now.")
 
-def sendEmail(to, content):
+    return ""
+
+
+def send_email(to_address, content):
+    email = os.getenv("EMAIL")
+    password = os.getenv("EMAIL_PASSWORD")
+
+    if not email or not password:
+        speak("Email credentials are not configured.")
+        return
+
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.ehlo()
-        server.starttls()
-        email = os.getenv('EMAIL')  # Use environment variable for email
-        password = os.getenv('EMAIL_PASSWORD')  # Use environment variable for password
-        if not email or not password:
-            raise ValueError("Email credentials not set in environment variables.")
-        server.login(email, password)
-        server.sendmail(email, to, content)
-        server.close()
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(email, password)
+            server.sendmail(email, to_address, content)
         speak("Email has been sent!")
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception as error:
+        print(f"Email error: {error}")
         speak("Sorry, I am not able to send this email.")
 
-if __name__ == "__main__":
-    wishMe()
+
+def search_wikipedia(query):
+    search_term = query.replace("wikipedia", "").strip()
+    if not search_term:
+        speak("Please tell me what to search on Wikipedia.")
+        return
+
+    speak("Searching Wikipedia...")
+
+    try:
+        results = wikipedia.summary(search_term, sentences=2)
+        speak("According to Wikipedia")
+        print(results)
+        speak(results)
+    except Exception as error:
+        print(f"Wikipedia error: {error}")
+        speak("Sorry, I could not fetch the information.")
+
+
+def play_music():
+    music_dir = os.getenv("MUSIC_DIR")
+
+    if not music_dir:
+        speak("Music directory is not configured. Set the MUSIC_DIR environment variable.")
+        return
+
+    music_path = Path(music_dir)
+    if not music_path.exists():
+        speak("Music directory not found.")
+        return
+
+    songs = [song for song in music_path.iterdir() if song.is_file()]
+    if not songs:
+        speak("No songs found in the directory.")
+        return
+
+    os.startfile(songs[0])
+
+
+def handle_query(query):
+    if not query:
+        return True
+
+    if "exit" in query or "quit" in query:
+        speak("Goodbye!")
+        return False
+
+    if "wikipedia" in query:
+        search_wikipedia(query)
+    elif "open youtube" in query:
+        webbrowser.open("https://www.youtube.com")
+    elif "open google" in query:
+        webbrowser.open("https://www.google.com")
+    elif "play music" in query:
+        play_music()
+    elif "the time" in query:
+        current_time = datetime.datetime.now().strftime("%H:%M:%S")
+        speak(f"The time is {current_time}")
+    else:
+        print("No query matched")
+        speak("I do not know that command yet.")
+
+    return True
+
+
+def main():
+    wish_me()
     while True:
-        query = takeCommand().lower()
-        if 'exit' in query or 'quit' in query:
-            speak("Goodbye Sir!")
+        query = take_command()
+        if not handle_query(query):
             break
-        elif 'wikipedia' in query:
-            speak('Searching Wikipedia...')
-            query = query.replace("wikipedia", "")
-            try:
-                results = wikipedia.summary(query, sentences=2)
-                speak("According to Wikipedia")
-                print(results)
-                speak(results)
-            except Exception as e:
-                print(f"Error: {e}")
-                speak("Sorry, I couldn't fetch the information.")
-        elif 'open youtube' in query:
-            webbrowser.open("youtube.com")
-        elif 'open google' in query:
-            webbrowser.open("google.com")
-        elif 'play music' in query:
-            music_dir = 'D:\\Non Critical\\songs\\Favorite Songs2'
-            if os.path.exists(music_dir):
-                songs = os.listdir(music_dir)
-                if songs:
-                    os.startfile(os.path.join(music_dir, songs[0]))
-                else:
-                    speak("No songs found in the directory.")
-            else:
-                speak("Music directory not found.")
-        elif 'the time' in query:
-            strTime = datetime.datetime.now().strftime("%H:%M:%S")
-            speak(f"Sir, the time is {strTime}")
-        else:
-            print("No query matched")
+
+
+if __name__ == "__main__":
+    main()

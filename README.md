@@ -1,23 +1,85 @@
-```markdown
-# Hi — I'm TUshARKatpara 👋
+# Jarvis Python Assistant
 
-I'm a data science student and aspiring machine learning engineer. I build projects related to data science, machine learning, and AI — from exploratory analyses to training models and experimenting with deep learning.
+Jarvis is a beginner-friendly Python voice assistant project. It can listen for voice commands, speak responses, search Wikipedia, open common websites, tell the time, play local music, and send email using environment variables.
 
-## About me
-- 🔭 I’m currently working on: personal ML projects and learning model deployment
-- 🌱 I’m learning: deep learning, model deployment, MLOps, and advanced ML topics
-- 💬 Ask me about: data science, machine learning, AI, Python, Pandas, NumPy, scikit-learn, TensorFlow / PyTorch
-- 📫 How to reach me: tushar.katpara09@gmail.com
+## Features
 
+- Voice input with `SpeechRecognition`
+- Text-to-speech responses with `pyttsx3`
+- Wikipedia summaries
+- Quick website shortcuts for Google and YouTube
+- Local music playback from a configurable folder
+- Email sending through Gmail SMTP
 
-## How to contribute
-I welcome friendly contributions, ideas, and feedback — especially from other students and beginners. Ways to contribute:
-- Open an issue to suggest a feature, report a bug, or ask a question
-- Submit a pull request with improvements, documentation updates, or new examples
-- Ask for guidance — I’m happy to collaborate and learn together
+## Requirements
 
-If you're new: don't worry! Label your issue or PR with "good first issue" or mention that you're a beginner — I'll help you get started.
+- Python 3.9 or newer
+- A working microphone
+- Windows is recommended for the current text-to-speech and music playback setup
 
----
-Thanks for visiting! 🚀
-``` 
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/TUshARKatpara/new-repo-.git
+cd new-repo-
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+> Note: `PyAudio` can require extra setup depending on your operating system.
+
+## Configuration
+
+The email feature uses environment variables so your password is not stored in code.
+
+```bash
+set EMAIL=your_email@gmail.com
+set EMAIL_PASSWORD=your_app_password
+```
+
+For music playback, set a folder path:
+
+```bash
+set MUSIC_DIR=C:\Users\YourName\Music
+```
+
+If `MUSIC_DIR` is not set, Jarvis will skip music playback and tell you that the folder is not configured.
+
+## Run
+
+```bash
+python jarvis.py
+```
+
+Try commands like:
+
+- `open google`
+- `open youtube`
+- `wikipedia machine learning`
+- `the time`
+- `play music`
+- `exit`
+
+## Roadmap
+
+- Add more website shortcuts
+- Add cross-platform music playback
+- Add tests for command matching
+- Add a simple command registry
+- Add better error messages for microphone setup
+
+## Contributing
+
+Friendly contributions are welcome. If you are new to open source, start with small improvements like documentation, command examples, or beginner-friendly features.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## License
+
+This project is available under the MIT License.
